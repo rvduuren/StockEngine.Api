@@ -18,6 +18,39 @@ public sealed class AuthFlowIntegrationTests(StockEngineApiFactory factory) : IC
     public Task DisposeAsync() => Task.CompletedTask;
 
     [Fact]
+    public async Task Health_is_reachable_without_authentication()
+    {
+        using var anonymous = factory.CreateClient();
+        var health = await anonymous.GetAsync("/api/health");
+        health.EnsureSuccessStatusCode();
+        var body = await health.Content.ReadFromJsonAsync<Dictionary<string, string>>();
+        Assert.NotNull(body);
+        Assert.Equal("Healthy", body["status"]);
+    }
+
+    [Fact]
+    public async Task Admin_can_reach_dashboard()
+    {
+        var tokens = await SignInAsync("admin@localhost", "Admin123!");
+        using var client = factory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", tokens.AccessToken);
+
+        var dashboard = await client.GetAsync("/api/admin/dashboard");
+        dashboard.EnsureSuccessStatusCode();
+    }
+
+    [Fact]
+    public async Task User_is_forbidden_on_admin_dashboard()
+    {
+        var tokens = await SignInAsync("user@localhost", "User123!");
+        using var client = factory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", tokens.AccessToken);
+
+        var dashboard = await client.GetAsync("/api/admin/dashboard");
+        Assert.Equal(HttpStatusCode.Forbidden, dashboard.StatusCode);
+    }
+
+    [Fact]
     public async Task Sign_in_me_refresh_rotates_and_sign_out()
     {
         var signIn = await _client.PostAsJsonAsync(
@@ -67,5 +100,15 @@ public sealed class AuthFlowIntegrationTests(StockEngineApiFactory factory) : IC
             "/auth/refresh",
             new RefreshRequest(rotated.RefreshToken));
         Assert.Equal(HttpStatusCode.Unauthorized, refreshAfterSignOut.StatusCode);
+    }
+
+    private async Task<TokenResponse> SignInAsync(string email, string password)
+    {
+        using var client = factory.CreateClient();
+        var signIn = await client.PostAsJsonAsync("/auth/sign-in", new SignInRequest(email, password));
+        signIn.EnsureSuccessStatusCode();
+        var tokens = await signIn.Content.ReadFromJsonAsync<TokenResponse>();
+        Assert.NotNull(tokens);
+        return tokens;
     }
 }
