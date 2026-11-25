@@ -13,19 +13,19 @@ public static class AuthEndpoints
 
         group.MapPost("/sign-in", SignInAsync)
             .WithName("SignIn")
-            .WithSummary("Sign in with email and password")
+            .WithSummary("Sign-in with email and password; returns an access token and refresh token")
             .Produces<TokenResponse>()
             .ProducesProblem(StatusCodes.Status401Unauthorized);
 
         group.MapPost("/refresh", RefreshAsync)
             .WithName("Refresh")
-            .WithSummary("Rotate refresh token and issue new access token")
+            .WithSummary("Exchange a refresh token for a new access token and refresh token (rotation)")
             .Produces<TokenResponse>()
             .ProducesProblem(StatusCodes.Status401Unauthorized);
 
         group.MapPost("/sign-out", SignOutAsync)
             .WithName("SignOut")
-            .WithSummary("Revoke a refresh token")
+            .WithSummary("Sign-out by revoking the presented refresh token")
             .Produces(StatusCodes.Status204NoContent)
             .ProducesProblem(StatusCodes.Status400BadRequest);
 

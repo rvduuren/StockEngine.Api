@@ -44,4 +44,10 @@ Swagger UI: [http://localhost:5088/swagger](http://localhost:5088/swagger) (Deve
 
 `src/StockEngine.Api/appsettings.json` holds the MariaDB connection string and JWT settings. Override `Jwt:SigningKey` via user secrets or environment variables before production.
 
+### Database migrations
+
+In **Development**, the API applies EF Core migrations and seeds dev users on startup (or use `dotnet ef database update` before `dotnet run` as above).
+
+Outside Development, migrations do **not** run on startup unless `Database:ApplyMigrationsOnStartup` is `true` (environment variable `Database__ApplyMigrationsOnStartup=true`). Otherwise apply schema at deploy time with `dotnet ef database update`. Dev seeding never runs outside Development.
+
 Domain vocabulary: [`GLOSSARY.md`](./GLOSSARY.md). Auth stack decision: [`docs/adr/0001-identity-mariadb-rotating-refresh.md`](./docs/adr/0001-identity-mariadb-rotating-refresh.md).
