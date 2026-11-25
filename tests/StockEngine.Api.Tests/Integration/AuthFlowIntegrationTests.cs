@@ -5,9 +5,17 @@ using StockEngine.Api.Contracts;
 
 namespace StockEngine.Api.Tests.Integration;
 
-public sealed class AuthFlowIntegrationTests(StockEngineApiFactory factory) : IClassFixture<StockEngineApiFactory>
+public sealed class AuthFlowIntegrationTests(StockEngineApiFactory factory) : IClassFixture<StockEngineApiFactory>, IAsyncLifetime
 {
-    private readonly HttpClient _client = factory.CreateClient();
+    private HttpClient _client = null!;
+
+    public Task InitializeAsync()
+    {
+        _client = factory.CreateClient();
+        return Task.CompletedTask;
+    }
+
+    public Task DisposeAsync() => Task.CompletedTask;
 
     [Fact]
     public async Task Sign_in_me_refresh_rotates_and_sign_out()

@@ -25,12 +25,16 @@ public sealed class StockEngineApiFactory : WebApplicationFactory<Program>, IAsy
     {
         builder.UseEnvironment("Development");
 
+        var connectionString = _mariaDb.GetConnectionString();
+
         builder.ConfigureAppConfiguration((_, config) =>
         {
             config.AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["ConnectionStrings:Default"] = _mariaDb.GetConnectionString(),
+                ["ConnectionStrings:Default"] = connectionString,
             });
         });
+
+        builder.UseSetting("ConnectionStrings:Default", connectionString);
     }
 }
