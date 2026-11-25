@@ -48,3 +48,13 @@ Used by `/wayfinder`. The **map** is a single issue with **child** issues as tic
 - **Frontier query**: list the map's open children (`gh issue list --state open`, scoped to the map's sub-issues / task list), drop any with an open blocker (see **Count open blockers**, or an open issue in the `Blocked by` line) or an assignee; first in map order wins.
 - **Claim**: `gh issue edit <n> --add-assignee @me`, the session's first write.
 - **Resolve**: `gh issue comment <n> --body "<answer>"`, then `gh issue close <n>`, then append a context pointer (gist + link) to the map's Decisions-so-far.
+
+## Ticket resolution
+
+Use this when a skill asks you to implement from GitHub issues:
+
+1. Read the target issue (`gh issue view <n>`).
+2. If the body contains **`Part of #<parent>`**, read the parent issue before coding.
+3. Read ADRs under `docs/adr/` (and context-scoped ADRs if the layout is multi-context) that touch the area.
+4. On **conflict** between child acceptance criteria and parent issue / ADR / README, treat **parent + accepted ADRs + README** as authoritative. Do not implement stale bullets (for example a child that still says Pomelo when ADR-0001 keeps Oracle `MySql.EntityFrameworkCore`). Surface the contradiction in an issue or PR comment before investing in large changes.
+5. Close or edit child issues when work lands so the tracker matches merged reality (link PRs; reconcile checklists).

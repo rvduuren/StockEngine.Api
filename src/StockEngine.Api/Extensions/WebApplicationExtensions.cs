@@ -2,6 +2,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
@@ -16,9 +17,6 @@ public static class WebApplicationExtensions
 {
     public static void AddStockEngineServices(this WebApplicationBuilder builder)
     {
-        var connectionString = builder.Configuration.GetConnectionString("Default")
-            ?? throw new InvalidOperationException("Connection string 'Default' is not configured.");
-
         builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptions.SectionName));
         builder.Services.Configure<DatabaseOptions>(builder.Configuration.GetSection(DatabaseOptions.SectionName));
         builder.Services.AddSingleton(TimeProvider.System);
@@ -30,10 +28,14 @@ public static class WebApplicationExtensions
             throw new InvalidOperationException("Jwt:SigningKey must be at least 32 characters.");
         }
 
-        builder.Services.AddDbContext<ApplicationDbContext>(options =>
+        builder.Services.AddDbContext<ApplicationDbContext>((serviceProvider, options) =>
+        {
+            var connectionString = serviceProvider.GetRequiredService<IConfiguration>().GetConnectionString("Default")
+                ?? throw new InvalidOperationException("Connection string 'Default' is not configured.");
             options
                 .UseMySQL(connectionString)
-                .ReplaceService<IHistoryRepository, MariaDbMySqlHistoryRepository>());
+                .ReplaceService<IHistoryRepository, MariaDbMySqlHistoryRepository>();
+        });
 
         builder.Services
             .AddIdentityCore<ApplicationUser>(options =>
