@@ -15,16 +15,14 @@ public static class ApiEndpoints
 
         routes.MapGet("/api/me", (ClaimsPrincipal user) =>
             {
-                var userId = user.FindFirstValue(ClaimTypes.NameIdentifier)
-                    ?? user.FindFirstValue(ClaimTypes.Actor)
-                    ?? user.FindFirstValue("sub");
+                var userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
 
                 if (userId is null || !Guid.TryParse(userId, out var id))
                 {
                     return Results.Unauthorized();
                 }
 
-                var email = user.FindFirstValue(ClaimTypes.Email) ?? user.FindFirstValue("email");
+                var email = user.FindFirstValue(ClaimTypes.Email);
                 var roles = user.FindAll(ClaimTypes.Role).Select(c => c.Value).ToList();
 
                 return Results.Ok(new MeResponse(id, email, roles));
@@ -33,10 +31,10 @@ public static class ApiEndpoints
             .WithName("GetMe")
             .RequireAuthorization();
 
-        routes.MapGet("/api/admin/dashboard", () => Results.Ok(new
+        routes.MapGet("/api/admin/dashboard", (TimeProvider time) => Results.Ok(new
             {
                 message = "Admin-only sample endpoint.",
-                generatedAt = DateTimeOffset.UtcNow,
+                generatedAt = time.GetUtcNow(),
             }))
             .WithTags("Admin")
             .WithName("AdminDashboard")

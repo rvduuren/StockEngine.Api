@@ -20,6 +20,7 @@ public static class WebApplicationExtensions
             ?? throw new InvalidOperationException("Connection string 'Default' is not configured.");
 
         builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptions.SectionName));
+        builder.Services.Configure<DatabaseOptions>(builder.Configuration.GetSection(DatabaseOptions.SectionName));
         builder.Services.AddSingleton(TimeProvider.System);
 
         var jwtSection = builder.Configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>()
@@ -52,6 +53,7 @@ public static class WebApplicationExtensions
         builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
             {
+                options.MapInboundClaims = true;
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuer = true,
@@ -94,7 +96,11 @@ public static class WebApplicationExtensions
 
     public static async Task PrepareDatabaseAsync(this WebApplication app)
     {
-        if (!app.Environment.IsDevelopment())
+        var isDevelopment = app.Environment.IsDevelopment();
+        var dbOptions = app.Configuration.GetSection(DatabaseOptions.SectionName).Get<DatabaseOptions>()
+            ?? new DatabaseOptions();
+
+        if (!isDevelopment && !dbOptions.ApplyMigrationsOnStartup)
         {
             return;
         }
@@ -102,6 +108,10 @@ public static class WebApplicationExtensions
         await using var scope = app.Services.CreateAsyncScope();
         var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         await db.Database.MigrateAsync();
-        await DevDataSeeder.SeedAsync(app.Services);
+
+        if (isDevelopment)
+        {
+            await DevDataSeeder.SeedAsync(app.Services);
+        }
     }
 }
