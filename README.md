@@ -50,4 +50,12 @@ In **Development**, the API applies EF Core migrations and seeds dev users on st
 
 Outside Development, migrations do **not** run on startup unless `Database:ApplyMigrationsOnStartup` is `true` (environment variable `Database__ApplyMigrationsOnStartup=true`). Otherwise apply schema at deploy time with `dotnet ef database update`. Dev seeding never runs outside Development.
 
+## Tests
+
+```bash
+dotnet test StockEngine.slnx
+```
+
+The suite includes integration tests that start **MariaDB 11.4 via Testcontainers**. **Docker** must be available locally and in CI (GitHub Actions on `ubuntu-latest` runs the full suite). Unit tests (`TokenHasher`, `RefreshToken`) do not require Docker.
+
 Domain vocabulary: [`GLOSSARY.md`](./GLOSSARY.md). Auth stack decision: [`docs/adr/0001-identity-mariadb-rotating-refresh.md`](./docs/adr/0001-identity-mariadb-rotating-refresh.md).

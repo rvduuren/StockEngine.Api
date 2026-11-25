@@ -25,8 +25,15 @@ public sealed class AuthFlowIntegrationTests(StockEngineApiFactory factory) : IC
         me.EnsureSuccessStatusCode();
         var profile = await me.Content.ReadFromJsonAsync<MeResponse>();
         Assert.NotNull(profile);
+        Assert.NotEqual(Guid.Empty, profile.UserId);
         Assert.Equal("user@localhost", profile.Email);
-        Assert.Contains("User", profile.Roles);
+        Assert.Equal(["User"], profile.Roles);
+
+        var meAgain = await _client.GetAsync("/api/me");
+        meAgain.EnsureSuccessStatusCode();
+        var profileAgain = await meAgain.Content.ReadFromJsonAsync<MeResponse>();
+        Assert.NotNull(profileAgain);
+        Assert.Equal(profile.UserId, profileAgain.UserId);
 
         var firstRefreshToken = tokens.RefreshToken;
 
