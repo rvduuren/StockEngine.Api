@@ -100,6 +100,26 @@ public sealed class AuthTokenService(
         return true;
     }
 
+    public async Task RevokeAllActiveRefreshTokensForUserAsync(
+        Guid userId,
+        CancellationToken cancellationToken = default)
+    {
+        var now = timeProvider.GetUtcNow();
+        var active = await db.RefreshTokens
+            .Where(x => x.UserId == userId && x.RevokedAt == null)
+            .ToListAsync(cancellationToken);
+
+        foreach (var item in active)
+        {
+            item.RevokedAt = now;
+        }
+
+        if (active.Count > 0)
+        {
+            await db.SaveChangesAsync(cancellationToken);
+        }
+    }
+
     private async Task RevokeDescendantTokensAsync(RefreshToken token, CancellationToken cancellationToken)
     {
         var active = await db.RefreshTokens

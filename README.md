@@ -20,10 +20,31 @@ Swagger UI: [http://localhost:5088/swagger](http://localhost:5088/swagger) (Deve
 
 ## Development users
 
-| Email             | Password   | Role  |
-| ----------------- | ---------- | ----- |
-| `admin@localhost` | `Admin123!` | Admin |
-| `user@localhost`  | `User123!`  | User  |
+| Email                | Password    | Role             |
+| -------------------- | ----------- | ---------------- |
+| `admin@localhost`    | `Admin123!` | Admin            |
+| `manager@localhost`  | `Manager123!` | WarehouseManager |
+| `picker@localhost`   | `Picker123!` | Picker           |
+| `packer@localhost`   | `Packer123!` | Packer           |
+
+There is **no** public registration endpoint. In v1, only Admins provision accounts (see below).
+
+### Admin user provisioning
+
+| Method | Route | Auth | Description |
+| ------ | ----- | ---- | ----------- |
+| `POST` | `/api/admin/users` | Admin | Create user with `email`, `password`, and `roles[]` |
+| `PUT` | `/api/admin/users/{id}/roles` | Admin | Replace the user's entire role set |
+
+**Roles (v1):** `Admin`, `WarehouseManager`, `Picker`, `Packer`. `Admin` must be the only role when assigned; other users need at least one of `WarehouseManager`, `Picker`, or `Packer`.
+
+Successful create returns `201` with `{ id, email, roles }` and `Location: /api/admin/users/{id}` (password is not echoed). Duplicate email → `409`.
+
+Provisioned users sign in with `POST /auth/sign-in` using the password set by the Admin.
+
+When an Admin changes a user's roles, **active refresh tokens** for that user are revoked. Access tokens already issued may still work until they expire (short JWT lifetime). See [`docs/adr/0002-admin-provisioning.md`](./docs/adr/0002-admin-provisioning.md).
+
+**Out of scope for v1:** Admin password reset, user list/detail, delete/deactivate, email invites, and self-service registration.
 
 ## Auth flow
 
@@ -58,4 +79,4 @@ dotnet test StockEngine.slnx
 
 The suite includes integration tests that start **MariaDB 11.4 via Testcontainers**. **Docker** must be available locally and in CI (GitHub Actions on `ubuntu-latest` runs the full suite). Unit tests (`TokenHasher`, `RefreshToken`) do not require Docker.
 
-Domain vocabulary: [`GLOSSARY.md`](./GLOSSARY.md). Auth stack decision: [`docs/adr/0001-identity-mariadb-rotating-refresh.md`](./docs/adr/0001-identity-mariadb-rotating-refresh.md).
+Domain vocabulary: [`GLOSSARY.md`](./GLOSSARY.md). Auth stack: [`docs/adr/0001-identity-mariadb-rotating-refresh.md`](./docs/adr/0001-identity-mariadb-rotating-refresh.md). Admin provisioning: [`docs/adr/0002-admin-provisioning.md`](./docs/adr/0002-admin-provisioning.md).

@@ -40,9 +40,9 @@ public sealed class AuthFlowIntegrationTests(StockEngineApiFactory factory) : IC
     }
 
     [Fact]
-    public async Task User_is_forbidden_on_admin_dashboard()
+    public async Task Picker_is_forbidden_on_admin_dashboard()
     {
-        var tokens = await SignInAsync("user@localhost", "User123!");
+        var tokens = await SignInAsync("picker@localhost", "Picker123!");
         using var client = factory.CreateClient();
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", tokens.AccessToken);
 
@@ -55,7 +55,7 @@ public sealed class AuthFlowIntegrationTests(StockEngineApiFactory factory) : IC
     {
         var signIn = await _client.PostAsJsonAsync(
             "/auth/sign-in",
-            new SignInRequest("user@localhost", "User123!"));
+            new SignInRequest("picker@localhost", "Picker123!"));
         signIn.EnsureSuccessStatusCode();
         var tokens = await signIn.Content.ReadFromJsonAsync<TokenResponse>();
         Assert.NotNull(tokens);
@@ -67,8 +67,8 @@ public sealed class AuthFlowIntegrationTests(StockEngineApiFactory factory) : IC
         var profile = await me.Content.ReadFromJsonAsync<MeResponse>();
         Assert.NotNull(profile);
         Assert.NotEqual(Guid.Empty, profile.UserId);
-        Assert.Equal("user@localhost", profile.Email);
-        Assert.Equal(["User"], profile.Roles);
+        Assert.Equal("picker@localhost", profile.Email);
+        Assert.Equal(["Picker"], profile.Roles);
 
         var meAgain = await _client.GetAsync("/api/me");
         meAgain.EnsureSuccessStatusCode();
