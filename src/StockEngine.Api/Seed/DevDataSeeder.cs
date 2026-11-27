@@ -1,11 +1,12 @@
 using Microsoft.AspNetCore.Identity;
+using StockEngine.Api.Auth;
 using StockEngine.Api.Data;
 
 namespace StockEngine.Api.Seed;
 
 public static class DevDataSeeder
 {
-    public static readonly string[] Roles = ["Admin", "User"];
+    public static readonly string[] Roles = WarehouseRoleRules.AllRoles.ToArray();
 
     public static async Task SeedAsync(IServiceProvider services, CancellationToken cancellationToken = default)
     {
@@ -21,15 +22,17 @@ public static class DevDataSeeder
             }
         }
 
-        await EnsureUserAsync(userManager, "admin@localhost", "Admin123!", "Admin");
-        await EnsureUserAsync(userManager, "user@localhost", "User123!", "User");
+        await EnsureUserAsync(userManager, "admin@localhost", "Admin123!", [WarehouseRoleRules.Admin]);
+        await EnsureUserAsync(userManager, "picker@localhost", "Picker123!", [WarehouseRoleRules.Picker]);
+        await EnsureUserAsync(userManager, "packer@localhost", "Packer123!", [WarehouseRoleRules.Packer]);
+        await EnsureUserAsync(userManager, "manager@localhost", "Manager123!", [WarehouseRoleRules.WarehouseManager]);
     }
 
     private static async Task EnsureUserAsync(
         UserManager<ApplicationUser> userManager,
         string email,
         string password,
-        string role)
+        IReadOnlyList<string> roles)
     {
         var existing = await userManager.FindByEmailAsync(email);
         if (existing is not null)
@@ -52,6 +55,6 @@ public static class DevDataSeeder
             throw new InvalidOperationException($"Failed to seed user {email}: {errors}");
         }
 
-        await userManager.AddToRoleAsync(user, role);
+        await userManager.AddToRolesAsync(user, roles);
     }
 }

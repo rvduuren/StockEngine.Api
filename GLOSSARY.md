@@ -21,5 +21,9 @@ A long-lived opaque credential used only at the refresh endpoint to obtain a new
 _Avoid_: remember-me cookie, API key
 
 **Role**:
-A named authorization bucket assigned to a user (for example Admin or User) that gates which endpoints they may call.
+A named authorization bucket assigned to a user (for example Admin, WarehouseManager, Picker, or Packer) that gates which endpoints they may call.
 _Avoid_: permission, claim (implementation detail)
+
+**Provisioned user**:
+A user account created by an Admin through the admin provisioning API, with an initial password and roles set at creation time rather than through self-registration.
+_Avoid_: registered user, invited user
